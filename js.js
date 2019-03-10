@@ -2,25 +2,6 @@
 
 const e = React.createElement;
 
-class LikeButton extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { liked: false };
-  }
-
-  render() {
-    if (this.state.liked) {
-      return 'You liked this.';
-    }
-
-    return e(
-      'button',
-      { onClick: () => this.setState({ liked: true }) },
-      'Like'
-    );
-  }
-}
-
 var Data = Array(9).fill('_');
 var isXTurn = true;
 
@@ -41,17 +22,60 @@ function isWinner(data, player) {
 };
         
 function clicky(id) {
+  var msg = ''
   if (Data[id] != '_' || isWinner(Data, 'X') || isWinner(Data, 'O')) { return 0 };
-  const player = isXTurn ? 'X' : 'O';
-  Data[id] = isXTurn ? 'X' : 'O';
-  const msg = isWinner(Data, player) ? player + ' wins!' : ''
+  // const player = isXTurn ? 'X' : 'O';
+  Data[id] = 'X';
+  if (isWinner(Data, 'X')) {
+    msg = 'X wins!';
+  } else {
+    Data[CompTurn(Data)] = 'O';
+    msg = isWinner(Data, 'O') ? 'O wins!' : ''
+  };
   ReactDOM.render(
     e(()=>Board({msg: msg})), 
     domContainer);
-  isXTurn = !isXTurn;
 };
 
+function CompTurn(board) {
+  return board[4] == '_' ? 4 : false 
+  || takeWin(board, 'O')
+  || takeWin(board, 'X')
+  || emptyIds(board)[0]
+  // || choice(emptyIds(board))
+  ;
+};
 
+function choice(arr) {
+  return arr[
+    Math.floor(Math.random()*arr.length)]
+};
+
+function block(board, p) {
+  board.forEach((el,id)=>
+    Array(9).forEach((_,j)=>
+      isWinner([...board.slice(0,j), p, ...board.slice(j,10)])
+    )
+  );
+  return false
+};
+
+function place(arr, id, el) {
+  return [...arr.slice(0,id), el, ...arr.slice(id+1,9)]
+};
+
+function takeWin(board, player) {
+  return emptyIds(board)
+    .filter(id => 
+      isWinner(place(board, id, player), player))[0];
+};
+
+function emptyIds(data) {
+  return data
+    .map((el,id)=>[el,id])
+    .filter(([el,id])=>el=='_')
+    .map(([el,id])=>id);
+};
 
 function Square(props) {
   return e('button', 
